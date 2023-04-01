@@ -4,6 +4,31 @@ const app = express()
 const port = 80
 const wsport = 3030
 
+const timestamp = require('time-stamp');
+
+console.log(`${timestamp('YYYY-MM-DD HH:mm:ss')} Server launch requested`)
+
+const cors = require('cors');
+const helmet = require('helmet');
+const router = express.Router();
+
+require('./modules/mongodb')
+
+app.use(helmet())
+app.use(cors({
+  origin: '*'
+}))
+
+app.all('/*', function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With,Content-type,Accept,X-Access-Token,X-Key");
+
+  res.contentType('application/json');
+
+  next();
+});
+
 app.get('/', (req, res) => {
   res.send('API')
 })
@@ -23,7 +48,7 @@ app.post('/signin', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`HTTP running on port ${port}`)
+  console.log(`${timestamp('YYYY-MM-DD HH:mm:ss')} ✔ HTTP server is running, port ${port}`)
 })
 
 //ws
@@ -55,9 +80,10 @@ wss.on('connection', (ws) => {
 });
 
 function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
-console.log("wss up on port "+ wsport);
+
+console.log(timestamp('YYYY-MM-DD HH:mm:ss') + " ✔ WebSocket server is running, port " + wsport);

@@ -14,5 +14,6 @@ mongoose.connect(url, {
 }).then(cursor => {
     console.log(timestamp('YYYY-MM-DD HH:mm:ss') + " ✔ Database connection established")
 }).catch(err => {
-    console.log(`${timestamp('YYYY-MM-DD HH:mm:ss')} ✘ Database connection error: ${err}`)
+    console.log(`${timestamp('YYYY-MM-DD HH:mm:ss')} ✘ Database connection failed: ${err}`)
+    process.exit(0)
 })

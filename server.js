@@ -67,7 +67,7 @@ const clients = new Map();
 const planets = new Map();
 
 function onlineCount() {
-  return clients.entries.length;
+  return clients.size;
 }
 
 wss.on('connection', (ws) => {
@@ -79,35 +79,87 @@ wss.on('connection', (ws) => {
 
   clients.set(ws, playerdata);
 
+  log("+ " + id + " has connected, " + clients.size + " online");
+
   ws.on('message', (messageAsString) => {
 
-    const message = JSON.parse(messageAsString);
-    const playerdata = clients.get(ws);
+    const message = parseJSON(messageAsString, null);
 
-    message.sender = playerdata.id;
-    message.signedIn = playerdata.signedIn;
-    message.nickname = playerdata.nickname;
-    message.ip = playerdata.ip;
+    if (message == null) return ws.send(
+      JSON.stringify({ action: "error", data: "Unknown data type recieved from client." })
+    );
+
+    const player = clients.get(ws);
+
+    message.sender = player.id;
+    message.signedIn = player.signedIn;
+    message.nickname = player.nickname;
+    message.ip = player.ip;
 
     const outbound = JSON.stringify(message);
 
+    if (message.action !== 'auth' && !player.signedIn) {
+      ws.send(
+        JSON.stringify({ action: "error", data: "Unauthorized, please reconnect and log in." })
+      );
+      return ws.close()
+    }
+
+    switch (message.action) {
+      case "auth":
+        ws.send(
+          JSON.stringify({ action: "log", data: "Logging in as "+message.data.username+"..." })
+        );
+        const playerdata = {
+          id: player.id,
+          signedIn: true,
+          nickname: message.data.username,
+          ip: ""
+        };
+        clients.set(ws, playerdata);
+        return ws.send(
+          JSON.stringify({ action: "welcome", data: "Welcome back, "+message.data.username+"!" })
+        );
+        break;
+
+      default:
+        break;
+    }
+
+    /*
     [...clients.keys()].forEach((client) => {
       client.send(outbound);
-    });
+    });*/
 
   });
 
   ws.on("close", () => {
+    const player = clients.get(ws);
     clients.delete(ws);
+    log("- " + player.id + " has disconnected, " + clients.size + " online");
   });
-  
+
 });
 
 function uuidv4() {
-  return 'xxxxxxxx-xxxx-rled-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+  return 'beta-xxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
 
-console.log(timestamp('YYYY-MM-DD HH:mm:ss') + " ✔ WebSocket server is running, port " + wsport);
+const parseJSON = (inputString, fallback) => {
+  if (inputString) {
+    try {
+      return JSON.parse(inputString);
+    } catch (e) {
+      return fallback;
+    }
+  }
+};
+
+function log(data) {
+  return console.log(timestamp('YYYY-MM-DD HH:mm:ss') + ' ' + data);
+}
+
+log("✔ WebSocket server is running, port " + wsport);

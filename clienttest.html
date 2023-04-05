@@ -1,59 +1,90 @@
 <!DOCTYPE HTML>
 
 <html>
-   <head>
-      
-      <script type = "text/javascript">
-         function WebSocketTest() {
-            
-            if ("WebSocket" in window) {
-                log("Locating server...");
-               // Let us open a web socket
-               var ws = new WebSocket("ws://localhost:3030");
-				
-               ws.onopen = function() {
+
+<head>
+
+   <script type="text/javascript">
+      function WebSocketTest() {
+
+         if ("WebSocket" in window) {
+            var ws = null
+            log("Locating server...");
+            // Let us open a web socket
+            fetch("http://localhost/server").then((body) => {
+               body.json().then((data) => {
+                  if (data.is_mnt) return log(data.mnt_msg);
+                  log("Located server, connecting...")
+                  return openWS(new WebSocket(data.address));
+               })
+            }).catch(()=>{
+               return log("Unable to locate server.")
+            })
+
+            function openWS(ws) {
+               ws.onopen = function () {
                   ws.send(JSON.stringify(
-                     {action: "auth", data:{
-                        username: "Dog",
-                        password: "tallinn"
-                     }}
+                     {
+                        action: "auth", data: {
+                           username: "Dog",
+                           password: "tallinn"
+                        }
+                     }
                   ))
                };
-				
-               ws.onmessage = function (evt) { 
-                  var received_msg = evt.data;
-                  log("Message is received! "+ received_msg);
-               };
-				
-               ws.onclose = function() { 
-                  
-                  // websocket is closed.
-                  log("Connection is closed!"); 
-               };
-            } else {
-              
-               // The browser doesn't support WebSocket
-               alert("WebSocket NOT supported by your Browser!");
-            }
-         }
-         function log(data){
-            const text = document.createElement('span')
-            text.innerText = data
-            const br = document.createElement('br')
-            document.getElementById('console').appendChild(text)
-            document.getElementById('console').appendChild(br)
-         }
-      </script>
-		
-   </head>
-   
-   <body>
-    <div id = "console">
 
-    </div>
-      <div id = "sse">
-         <a href = "javascript:WebSocketTest()">Run WebSocket</a>
-      </div>
-      
-   </body>
+               ws.onmessage = function (evt) {
+                  var msg = JSON.parse(evt.data);
+                  switch (msg.action) {
+                     case "log":
+                        return log(msg.data);
+                        break;
+                     case "auth_response":
+                        var success = msg.data.success;
+                        var nickname = msg.data.nickname;
+                        log(success ? `Welcome back, ${nickname}!` : `Unable to log in as ${nickname}`)
+                        if (!success) return ws.close();
+                        ws.send(JSON.stringify(
+                           { action: "getUser" }
+                        ))
+                        break;
+                     default:
+                        log("Message is received! " + evt.data);
+                        break;
+                  }
+               };
+
+               ws.onclose = function () {
+
+                  // websocket is closed.
+                  log("Connection is closed!");
+               };
+            }
+         } else {
+
+            // The browser doesn't support WebSocket
+            alert("WebSocket NOT supported by your Browser!");
+         }
+      }
+      function log(data) {
+         const text = document.createElement('span')
+         text.innerText = data
+         const br = document.createElement('br')
+         document.getElementById('console').appendChild(text)
+         document.getElementById('console').appendChild(br)
+      }
+   </script>
+
+</head>
+
+<body>
+   <div id="console">
+
+   </div>
+   <div id="sse">
+      <a href="javascript:WebSocketTest()">Run WebSocket</a>
+   </div>
+
+</body>
+
 </html>

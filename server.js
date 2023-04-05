@@ -46,9 +46,9 @@ app.get('/', (req, res) => {
 
 app.get('/server', (req, res) => {
   res.json({
-    address: req.get('host') + ':' + wsport,
+    address: "ws://"+req.get('host') + ':' + wsport,
     mnt_msg: "Server is under maintenance, try again later.",
-    is_mnt: false,
+    is_mnt: true,
     name: "Main server",
     motd: "TESTING",
     online: onlineCount()
@@ -108,20 +108,28 @@ wss.on('connection', (ws) => {
     switch (message.action) {
       case "auth":
         ws.send(
-          JSON.stringify({ action: "log", data: "Logging in as "+message.data.username+"..." })
+          JSON.stringify({ action: "log", data: "Logging in as " + message.data.username + "..." })
         );
-        const playerdata = {
+        var playerdata = {
           id: player.id,
           signedIn: true,
           nickname: message.data.username,
           ip: ""
         };
         clients.set(ws, playerdata);
-        return ws.send(
-          JSON.stringify({ action: "welcome", data: "Welcome back, "+message.data.username+"!" })
+        ws.send(
+          JSON.stringify({ action: "auth_response", data: {success: true, nickname: message.data.username} })
+        );
+        ws.send(
+          JSON.stringify({ action: "motd", data: `Have a nice game! ${clients.size} online` })
         );
         break;
-
+      case "getUser":
+        var playerWS = clients.get(ws);
+        ws.send(
+          JSON.stringify(playerWS)
+        );
+        break;
       default:
         break;
     }

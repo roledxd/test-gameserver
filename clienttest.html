@@ -13,12 +13,12 @@
             // Let us open a web socket
             fetch("http://localhost/server").then((body) => {
                body.json().then((data) => {
-                  if (data.is_mnt) return log(data.mnt_msg);
+                  if (data.is_mnt) return log(data.mnt_msg, "red");
                   log("Located server, connecting...")
                   return openWS(new WebSocket(data.address));
                })
-            }).catch(()=>{
-               return log("Unable to locate server.")
+            }).catch(() => {
+               return log("Unable to locate server.", "red")
             })
 
             function openWS(ws) {
@@ -27,7 +27,8 @@
                      {
                         action: "auth", data: {
                            username: "Dog",
-                           password: "tallinn"
+                           password: "tallinn",
+                           client: "webclient@0.0.1",
                         }
                      }
                   ))
@@ -37,12 +38,13 @@
                   var msg = JSON.parse(evt.data);
                   switch (msg.action) {
                      case "log":
-                        return log(msg.data);
+                        return log(msg.data, msg.style);
                         break;
                      case "auth_response":
                         var success = msg.data.success;
-                        var nickname = msg.data.nickname;
-                        log(success ? `Welcome back, ${nickname}!` : `Unable to log in as ${nickname}`)
+                        var name = msg.data.nickname;
+                        var style = success ? 'green' : 'red'
+                        log(success ? `Welcome back, ${name}!` : `Unable to log in as ${name}`, style)
                         if (!success) return ws.close();
                         ws.send(JSON.stringify(
                            { action: "getUser" }
@@ -66,21 +68,23 @@
             alert("WebSocket NOT supported by your Browser!");
          }
       }
-      function log(data) {
+      function log(data, style) {
          const text = document.createElement('span')
-         text.innerText = data
+         text.className = style ? style : "default"
+         text.innerText = data;
          const br = document.createElement('br')
          document.getElementById('console').appendChild(text)
          document.getElementById('console').appendChild(br)
       }
    </script>
-
+   <link rel="stylesheet" href="./client.css">
 </head>
 
 <body>
    <div id="console">
-
+      <span>Client v0.1</span>
    </div>
+   <input placeholder="Enter your message" id="chat">
    <div id="sse">
       <a href="javascript:WebSocketTest()">Run WebSocket</a>
    </div>

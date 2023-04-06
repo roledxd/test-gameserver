@@ -1,0 +1,28 @@
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-family: verdana;
+}
+
+#console {
+    background: #e6e6e6;
+    padding: 10px;
+    overflow-y: scroll;
+    height: 100px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+}
+
+#console>span.red {
+    color: red;
+}
+
+#console>span.green {
+    color: green;
+}
+
+#chat {
+    padding: 10px;
+}

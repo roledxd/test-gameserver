@@ -12,6 +12,25 @@ const cors = require('cors');
 const helmet = require('helmet');
 const router = express.Router();
 
+const allowedClients = {
+  webclient: ["0.1"],
+  windows: ["BETA 0.1"],
+  ios: [],
+  android: []
+}
+
+
+const serverSettings = (req) => {
+  return {
+    address: "ws://" + req.get('host') + ':' + wsport,
+    mnt_msg: "Server is under maintenance, try again later.",
+    is_mnt: false,
+    name: "Main server",
+    motd: "TESTING",
+    online: onlineCount()
+  }
+}
+
 require('./modules/mongodb')
 
 app.use(helmet())
@@ -45,14 +64,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/server', (req, res) => {
-  res.json({
-    address: "ws://"+req.get('host') + ':' + wsport,
-    mnt_msg: "Server is under maintenance, try again later.",
-    is_mnt: true,
-    name: "Main server",
-    motd: "TESTING",
-    online: onlineCount()
-  })
+  res.json(serverSettings(req))
 })
 
 app.listen(port, () => {
@@ -105,8 +117,40 @@ wss.on('connection', (ws) => {
       return ws.close()
     }
 
+    function clientStatus(client, ws, cb) {
+      if (typeof client !== 'string') {
+        return ws.send(
+          JSON.stringify({ action: "log", data: "Unknown client", style: "red" })
+        );
+      }
+      const clientNameV = [client.split("@")[0], client.split("@")[1]];
+      const clientObj = allowedClients[clientNameV[0]]
+      if (typeof clientObj == 'undefined') {
+        return ws.send(
+          JSON.stringify({ action: "log", data: "This client is no longer supported! Please, download the official client from our website. This helps to prevent cheating and keep our game friendly.", style: "red" })
+        );
+      }
+      if (typeof clientObj.find(v => v == clientNameV[1]) !== 'string') {
+         return ws.send(
+          JSON.stringify({ action: "log", data: "Outdated client! Please, download our latest update ("+clientObj[clientObj.length]+").", style: "red" })
+        );
+      }
+      return cb("valid")
+    }
+
     switch (message.action) {
       case "auth":
+        const client = clientStatus(
+          message.data.client,
+          ws,
+          message.data.username,
+        )
+        if (client !== 'valid') return ws.send(
+          JSON.stringify({
+            action: "auth_response",
+            data: { success: false, nickname: message.data.username } 
+          })
+        );
         ws.send(
           JSON.stringify({ action: "log", data: "Logging in as " + message.data.username + "..." })
         );
@@ -118,10 +162,10 @@ wss.on('connection', (ws) => {
         };
         clients.set(ws, playerdata);
         ws.send(
-          JSON.stringify({ action: "auth_response", data: {success: true, nickname: message.data.username} })
+          JSON.stringify({ action: "auth_response", data: { success: true, nickname: message.data.username } })
         );
         ws.send(
-          JSON.stringify({ action: "motd", data: `Have a nice game! ${clients.size} online` })
+          JSON.stringify({ action: "log", data: `Have a nice game! ${clients.size} online`, style: "red" })
         );
         break;
       case "getUser":

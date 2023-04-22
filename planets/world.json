@@ -1,0 +1,43 @@
+{
+    "name": "world",
+    "owner": null,
+    "available": true,
+    "tiles": [
+        {
+            "x": 1,
+            "y": 1,
+            "block_id": "bedrock",
+            "properties": {
+                "mirrored": false
+            }
+        },
+        {
+            "x": 2,
+            "y": 1,
+            "block_id": "bedrock",
+            "properties": {
+                "mirrored": false
+            }
+        },
+        {
+            "x": 2,
+            "y": 2,
+            "block_id": "door",
+            "properties": {
+                "title": "Leave",
+                "destination": "exit",
+                "id": "exitdoor",
+                "mirrored": false
+            }
+        },
+        {
+            "x": 1,
+            "y": 2,
+            "block_id": "sign",
+            "properties": {
+                "title": "This door is made for those, who want to leave this planet.",
+                "mirrored": true
+            }
+        }
+    ]
+}

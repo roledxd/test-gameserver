@@ -1,0 +1,45 @@
+{
+    "name":"noob",
+    "player_type": "player",
+    "ban": {
+        "active": false,
+        "reason": ""
+    },
+    "access_token": "acef-peca-mane-5729",
+    "balance": 1234,
+    "email": "roledxd@gmail.com",
+    "password": "iamjustakid",
+    "exp": 23,
+    "inventory": {
+        "slots": 10,
+        "items": [
+            {
+                "id": "fist",
+                "amount": 1
+            },
+            {
+                "id": "wrench",
+                "amount": 1
+            },
+            {
+                "id": "door",
+                "amount": 5
+            },
+            {
+                "id": "sign",
+                "amount": 5
+            },
+            {
+                "id": "dirt",
+                "amount": 100
+            },
+            {
+                "id": "top_hat",
+                "amount": 1,
+                "properties":{
+                    "equip": true
+                }
+            }
+        ]
+    }
+}

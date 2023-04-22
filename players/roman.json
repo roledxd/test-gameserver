@@ -1,0 +1,45 @@
+{
+    "name":"RoMaN",
+    "player_type": "moderator",
+    "ban": {
+        "active": false,
+        "reason": ""
+    },
+    "access_token": "access_token",
+    "balance": 1234,
+    "email": "roman.ledjajev@tptlive.ee",
+    "password": "passw0rd",
+    "exp": 100000,
+    "inventory": {
+        "slots": 50,
+        "items": [
+            {
+                "id": "fist",
+                "amount": 1
+            },
+            {
+                "id": "wrench",
+                "amount": 1
+            },
+            {
+                "id": "door",
+                "amount": 5
+            },
+            {
+                "id": "sign",
+                "amount": 5
+            },
+            {
+                "id": "dirt",
+                "amount": 100
+            },
+            {
+                "id": "top_hat",
+                "amount": 200,
+                "properties":{
+                    "equip": true
+                }
+            }
+        ]
+    }
+}

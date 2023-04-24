@@ -79,13 +79,13 @@ wss.on('connection', (ws) => {
 
   log("+ " + id + " has connected, " + clients.size + " online");
 
-  ws.on('message', (messageAsString) => {
+  ws.on('message', async (messageAsString) => {
     const message = JSON.parse(messageAsString.toString().replaceAll('\'', '"'));
     console.log(message)
     if (message == null) return ws.send(
       JSON.stringify({ action: "error", data: "Unknown data type recieved from client." })
     );
-  
+
     const player = clients.get(ws);
 
     message.sender = player.id;
@@ -104,6 +104,7 @@ wss.on('connection', (ws) => {
 
     switch (message.action) {
       case "auth":
+        const { User } = require('./mongoModels/models')
         const client = checkClient(
           message.client, ws
         )
@@ -116,6 +117,24 @@ wss.on('connection', (ws) => {
         ws.send(
           JSON.stringify({ action: "log", data: "Logging in as " + message.username + "..." })
         );
+        console.log(message.username, message.password)
+        const foundUser = await User.findOne({
+          username: message.username,
+          password: message.password
+        });
+        console.log(foundUser)
+        if (foundUser == null) {
+          ws.send(
+            JSON.stringify({ action: "log", data: "Unable to log in as " + message.username + "! Invalid password or an attempt to hack someone??" })
+          );
+          return ws.send(
+            JSON.stringify({
+              action: "auth_response",
+              data: { success: false, nickname: message.username }
+            })
+          )
+        };
+        console.log(foundUser)
         var playerdata = {
           id: player.id,
           signedIn: true,

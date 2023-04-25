@@ -111,11 +111,8 @@ wss.on('connection', (ws) => {
         if (client !== 'valid') return ws.send(
           JSON.stringify({
             action: "auth_response",
-            data: { success: false, nickname: message.username }
+            data: { success: "false", nickname: message.username }
           })
-        );
-        ws.send(
-          JSON.stringify({ action: "log", data: "Logging in as " + message.username + "..." })
         );
         console.log(message.username, message.password)
         const foundUser = await User.findOne({
@@ -127,13 +124,17 @@ wss.on('connection', (ws) => {
           ws.send(
             JSON.stringify({ action: "log", data: "Unable to log in as " + message.username + "! Invalid password or an attempt to hack someone??" })
           );
-          return ws.send(
+          ws.send(
             JSON.stringify({
               action: "auth_response",
               data: { success: false, nickname: message.username }
             })
           )
+          return ws.close();
         };
+        ws.send(
+          JSON.stringify({ action: "log", data: "Logging in as " + message.username + "..." })
+        );
         console.log(foundUser)
         var playerdata = {
           id: player.id,
